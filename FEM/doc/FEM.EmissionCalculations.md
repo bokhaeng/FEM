@@ -2,17 +2,16 @@
 
 The general approach to calculating NH3 emissions due to livestock is to multiply the emission factor (in kg per year per animal) by the number of animals in the county. The county-level NH3 emissions factors are estimated using the FEM and county-level daily meteorology (ambient temperature, wind speed, and precipitation). Once the FEM estimates NH3 emission factors by animal type, the county-level NH3 emission factors (EF<sub>c,a,2020</sub>) will be multiplied with the latest 2020 NEI animal population (A<sub>c,a,2020</sub>) to compute the 2020 county-level NH3 emissions (E<sub>c,a,2020</sub>) for all animal types.
 
-***E<sub>NH3 c,a,2020</sub> = EF<sub>NH3 c,a,2020</sub> / A<sub>c,a,2020</sub>***
+***E<sub>NH3 c,a,2020</sub> = EF<sub>NH3 c,a,2020</sub> x A<sub>c,a,2020</sub>***
 
   - *E<sub>NH3 c,a,2020</sub> = NH3 Emissions for animal type (a) and county (c) in unit of short tons*
-
   - *EF<sub>NH3 c,a,2020</sub> = NH3 Emission Factor from the FEM for animal type (a) and county (c) in unit of kg/animal-head*
   - *A<sub>c,a,2020</sub> = Animal count for animal type (a) and county (c) in unit of animal-head*
 
 
   VOC emissions were estimated by multiplying a constant national VOC/NH3 emissions ratio of 0.08 by the county-level NH3 emissions. Hazardous air pollutants (HAP) emissions were estimated by multiplying the county-level VOC emissions by HAP/VOC ratios, which are obtained from the literature and can vary by animal type.  The VOC emissions (E_<sub>c,a,2020</sub>) are calculated using the ratio of VOC to NH3 emissions from livestock.  That ratio is 0.08 kg of VOC for every kg of NH3.  HAP emissions were estimated by multiplying the county-level VOC emissions by HAP/VOC ratios from Table 1 below.
 
-  ***E<sub>VOC c,a,2020</sub> = VOC/NH3 * EF<sub>NH3 c,a,2020</sub>***
+  ***E<sub>VOC c,a,2020</sub> = VOC/NH3 x EF<sub>NH3 c,a,2020</sub>***
 
   - *E<sub>VOC c,a,2020</sub> = VOC Emissions for animal type (a) and county (c) in unit of short tons*
   - *VOC/NH3 = 0.08 (constant value of VOC/NH3 ratio*

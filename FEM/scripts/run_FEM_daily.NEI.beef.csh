@@ -2,7 +2,7 @@
 
 # FEM inputs
 
-setenv BASEDIR /usr/home/FEM/ 
+setenv BASEDIR /usr/home/FEM/
 
 setenv case 2020
 setenv ANIMAL_TYPE beef
@@ -27,4 +27,3 @@ setenv FARM_MON_OUTPUT $BASEDIR/results/FEM_${case}.${ANIMAL_TYPE}.monthly.txt
 setenv FARM_DAY_OUTPUT $BASEDIR/results/FEM_${case}.${ANIMAL_TYPE}.daily.txt
 
 $BASEDIR/source/FEM_daily.out
-

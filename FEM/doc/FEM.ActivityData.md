@@ -1,0 +1,14 @@
+# Activity Data for FEM
+
+The activity data for this source category is based on livestock counts (average annual number of standing heads) and population information by state and county used to develop U.S. EPA’s Greenhouse Gas (GHG) Inventory. This data set is derived from multiple data sets from the United States Department of Agriculture (USDA), particularly the National Agricultural Statistics Service (NASS) survey and census [35]. The USDA NASS survey dataset, which represents the latest available, 2020 national livestock data, is used to obtain the livestock counts for as many counties as possible across the United States.  For a full description of the GHG livestock population estimation methodology, refer to the referenced citation for the EPA’s GHG inventory document.
+Generally, counties not specifically included in the NASS survey data set (e.g., due to business confidentially reasons) are known as “D counties”. They were gap-filled based on the difference in the reported state total animal counts and the sum of all county-level reported animal counts. State-level data on animal counts from the GHG inventory were distributed to counties based on the proportion of animal counts in those counties from the 2020 NASS census. The general methods to allocate animal populations from state to county, based on lack of data at the county level, can be found from the EPA’s  GHG Inventory document [34]. Equation 1 is used to allocate animal population to county, as needed:
+
+***P<sub>a,c,2020</sub>=P<sub>a,s,2020</sub> × r<sub>a,c,2020</sub>***
+Where:
+  - P<sub>a,c,2017</sub>	=	Estimated population of animal type a in county c
+  - P<sub>a,s,2020</sub>	=	NASS survey reported state-level population of animal type a in state s
+  - r<sub>a,c,2020</sub>	=	Ratio of animal county- to state-level animal counts from the 2012 NASS census for animal type a in county c
+
+When we come across any “D counties”, the county-level methodology relies on evenly distributing the ‘available’ population (difference between the state population and the sum of the “non-D counties”) to each D county in the state. So, for example, if Broward, Orange, and Polk counties in Florida are “D” and the sum of the non-D counties is 6,000 compared to a reported 9,000 population for a given animal in FL, each of those counties each get 1,000 head. The point of determining the county level population is to get a ratio for each county/year/animal. That ratio is multiplied by the NASS population (the goal is to always match the NASS data). That resulting value is then the estimated county-level population.
+
+The USDA survey reports the livestock counts at the county level for many counties, so no allocation is necessary. The procedure for gap-filling missing county-level data using state-level data.

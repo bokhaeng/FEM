@@ -1,9 +1,9 @@
 # Farm Manure Management Practices Inputs for FEM
 
-s mentioned above, NH3 emission factors from livestock waste is also a function of manure management practices employed by the producers (i.e. what housing, storage and application methods are used).  It can significantly impact on the conditions of the manure and waste (e.g. water content, total ammoniacal nitrogen concentration) and as a result, it can increase or reduce the emissions of ammonia from these sources.  
+Along with the importance of local meteorological conditions, NH3 emission factors from livestock waste is also a function of manure management practices employed by the producers (i.e. what housing, storage and application methods are used).  It can significantly impact on the conditions of the manure and waste (e.g. water content, total ammoniacal nitrogen concentration) and as a result, it can increase or reduce the emissions of ammonia from these sources.  
 The FEM model requires county-level farm manure management inputs which describe the type of animal housing, manure storage, and application methods used for a particular location.  Each location is expected to have some combination of practices; for example, in a single county, some of swine farms may use deep-pit housing, lagoon storage, and irrigation application while other farms use shallow-pit housing with lagoon storage and injection application.
 
-A farm configuration is a unique combination of manure management practices that describe the operation of the farm. Each farm configuration is executed by the FEM, and the county-level daily NH3 emission factor is the average of all farm configuration FEM simulations, weighted by farm size and probability of occurrence.
+A farm configuration is a unique combination of manure management practices that describe the operation of the farm. Each farm configuration is executed by the FEM, and the county-level daily NH3 emission factor is the average of all farm configuration FEM simulations, weighted by farm size and probability of occurrence (Table 3).
 
 
 ### Table 3. FEM Farm Manusre Management Practices configuration file
