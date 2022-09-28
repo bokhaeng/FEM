@@ -14,4 +14,4 @@ The FEM is a semi-empirical process-based emissions model, as they are based on 
 
 [Chapter 6 | Model Parameters](https://github.com/bokhaeng/FEM/tree/main/FEM/doc/FEM.Parameters.md)
 
-[Chapter 7 | How to run FEM](https://github.com/bokhaeng/FEM/tree/main/FEM/doc/FEM.HowtoRunFEM.md)
+[Chapter 7 | How to install and run FEM](https://github.com/bokhaeng/FEM/tree/main/FEM/doc/FEM.HowtoRunFEM.md)
