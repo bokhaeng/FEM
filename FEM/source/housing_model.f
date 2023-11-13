@@ -65,8 +65,6 @@ c     local variables
        do i = 1,24
 
          T = avetemp(i) + 273.15
-         if(anim_type=='layer'.or.anim_type=='broiler') T = 273.15  ! constant Temp. No temp impact
-
          dt = 1 ! hours in a timestep
          Kh = 10**(-1.69+(1477.7/(T)))
          Ka = (10**-(0.09018+(2729.92/T)))
@@ -111,7 +109,6 @@ c     local variables
      2    (-kurea+Hstar*A/r/C3)*exp(-kurea*dt+Hstar*A/r/C3*dt)+
      3    exp(-Hstar*A/r/C3*dt)*C1
 
-
          hourly_emissions(i) = (Murea0 - Murea_remain) * Cut +
      2                         (Mtan0 - Mtan_remain)
 
@@ -119,8 +116,6 @@ c     local variables
             hourly_vol(i) = Vt_remain
             hourly_urea(i) = Murea_remain
             hourly_tan(i) = Mtan_remain
-c           write(6,'(a,8F15.3)') 'Housing(-):',avetemp(i),Vt_remain,cut,
-c     2        Murea0,Murea_remain,Mtan0,Mtan_remain, hourly_emissions(i)
          endif
 
          Murea0 = Murea_remain

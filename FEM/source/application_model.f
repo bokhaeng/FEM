@@ -68,13 +68,6 @@ c     local variables
                          ! 1 = no crust, 2 = crust
       real ci_tan, ci_vol ! manages distribution of crop interception
 
-
-C       print *,  ar, Er, u10, avetemp, pH, p1,
-C     2 pD1, pD2, DmC, Ci, Ir, It, Ip, Vt0, Mtan0, Vt_new, Mtan_new,
-C     3 test_mode, Vt_remain, Mtan_remain, infiltration, 
-C     4 hourly_emissions
-
-
       A = ar  
       Vt_new = Vt_new / 1000
       Vt0 = Vt0 / 1000
@@ -101,7 +94,7 @@ c     and divide by hours applied
       do i = 1,24
 
          dt = 1 ! hours in a timestep
-         T = avetemp(i) + 273.15
+         if( avetemp(i) < 0.0 ) avetemp(i) = 0.0
          Kh = 10**(-1.69+(1477.7/(T)))
          Ka = (10**-(0.09018+(2729.92/T)))
          Hstar = Ka/(((1+1/Kh)*Ka+Hconc)*Kh)
@@ -188,8 +181,6 @@ c     time to apply
             hourly_vol(i) = Vt_remain
             hourly_infiltration(i) = infiltration
             hourly_tan(i) = Mtan_remain
-            write(6,'(a,i6,4F15.3)') 'Application: ', i,Vt_remain,
-     2         Mtan_remain, infiltration, hourly_emissions(i)
          endif
 
          Mtan0 = Mtan_remain

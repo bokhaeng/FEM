@@ -1,30 +1,32 @@
-      subroutine generate_factors_daily(county_filename, farm_filename,  
-     2                                  param_filename, anim_type)
+      subroutine generate_factors_daily(nfips,farm_filename,param_filename, 
+     2                                  anim_type, country, cyear, scc)
 
       implicit none
      
 c     input variables
-      character*180 county_filename
+      integer nfips
       character*180 farm_filename
       character*180 param_filename
-      integer iterations ! number of counties
+      character*10  anim_type, country, cyear, scc
       character*180 farm_ann, farm_mon, farm_day
-      character*10  anim_type
-
 
 c     farm model variables
       real temps(366)
-      real precip(366) ! monthly average precipitation
-      real wind(366)      ! monthly average windspeed
-      real infiltration_rate ! infiltration rate
-      integer farm_type(18)     ! array holding farm type information
+      real precip(366)               ! monthly average precipitation
+      real wind(366)                 ! monthly average windspeed
+      real infiltration_rate         ! infiltration rate
+      integer farm_type(18)          ! array holding farm type information
       real application_schedule(12)  ! fraction of manure 
-      real month_jdate (12)  ! julian date for each month 
-      real params(44)    ! input parameters
-      real daily_emissions(366,4)
+      real params(44)                ! input parameters
+      integer month_jdate (12)       ! julian date for each month 
+      integer month_idate (12)       ! julian date for each month 
+      real daily_emissions(366,4)    ! daily emissions by process
+      real day_emission(366)         ! daily emissions
+      real mon_total(12)             ! monthly emissions
       real me(366,4)
 
 c     farm type variables
+      integer year, ndays, sdate, edate
       integer confined_summer
       integer confined_winter
       integer pasture
@@ -58,13 +60,13 @@ c     file IO variables
       integer fclimate         ! climate values
       integer fcow_pop         ! cow population
       integer ffactor_out      ! annual output file
-      integer ffactor_mon      ! monthly output file
       integer ffactor_day      ! daily output file
       character*80 line1, line2
       character*180 climate_file, anim_file
+      logical, save:: firstime = .true.
 
 c     local variables
-      integer i,j,k,l
+      integer i,j,k,l,ii
       integer state            ! current state
       integer county           ! current county
       integer date
@@ -74,29 +76,23 @@ c     local variables
 c     compute average emission factor
       integer county_cow_pop   ! cow population for county
       integer total_cow_pop    ! total cow population 
-      real day_total           ! county daily emission
+      real month_emission      ! county monthly emission
       real annual_emission     ! county annual emission
-      real Hannual_emission     ! county annual emission from housing
-      real Sannual_emission     ! county annual emission from storage
-      real Aannual_emission     ! county annual emission from application
-      real Gannual_emission     ! county annual emission from grazing
-      real total_month(12)     ! monthly emissions nationally
       real summer_winter_ratio ! emissions ratio summer / winter
-      real county_emission     ! county emissions weighted by cow population
-      real total_emission      ! weighted by cow population
-      real Mannual,MHannual,MSannual,MAannual,MGannual
 
-      data month_jdate /31,60,91,121,152,182,213,244,274,305,335,366/
-c      data month_jdate /31,60,90,120,151,181,212,243,273,304,334,365/
+      data month_idate /31,59,90,120,151,181,212,243,273,304,334,365/
+      data month_jdate /31,60,91,121,152,182,213,244,274,305,335,366/  ! leap-yaer
+
+C.......  check the leap year or not
+      ndays = 366
+      read( cyear,'(I10)' ) year
+      if( mod( year,4 ) > 0 ) then
+          ndays = 365
+          month_jdate=month_idate
+      end if
 
       i = 0
       total_cow_pop = 0
-      total_emission = 0
-
-
-      do k = 1,12
-         total_month(k) = 0.0
-      enddo
 
       fstate_county = 18
       ffarm_prob = 17
@@ -129,64 +125,66 @@ C     application_schedule
 
 c     open output file
       call getenv('FARM_ANN_OUTPUT',farm_ann)
-      call getenv('FARM_MON_OUTPUT',farm_mon)
       call getenv('FARM_DAY_OUTPUT',farm_day)
 
       open(ffactor_out, file = farm_ann)
-      open(ffactor_mon, file = farm_mon)
       open(ffactor_day, file = farm_day)
 
-c     open states and county list
-      i = 0
-      open(fstate_county,file=county_filename) 
+c     write NH3 emissions in FF10 headers
+      if( firstime ) then
+        write(ffactor_day,'(a)') '#FORMAT=FF10_DAYILY_NONPOINT'
+        write(ffactor_day,'(a)') '#COUNTRY=US'
+        write(ffactor_day,'(a)') '#YEAR='//trim(cyear)
+        write(ffactor_day,'(a)') 'country_cd,region_cd,tribal_code,census_tract_cd'
+     1    //',shape_id,na,emis_typescc,scc,poll,,,,month,mon_value,day1,day2,,,,,dayN'
+
+        write(ffactor_out,'(a)') '#FORMAT=FF10_NONPOINT'
+        write(ffactor_out,'(a)') '#COUNTRY=US'
+        write(ffactor_out,'(a)') '#YEAR='//trim(cyear)
+        write(ffactor_out,'(a)') 'country_cd,region_cd,tribal_code,census_tract_cd'
+     1 //',shape_id,scc,emis_type,poll,ann_value,,,,,,,,,,,,jan,feb,mar,,,,,,,,,dec'
+        
+        firstime = .false.
+      end if
 
 c     open climate data
       call getenv('CLIMATE',climate_file)
       open(fclimate, file=climate_file)
 
 c     open cow population data
-      call getenv('ANIMPOP',anim_file)
+      call getenv('ANIMAL_COUNTS',anim_file)
       open(fcow_pop, file=anim_file)
 
 c     open farm probabilities
       open(ffarm_prob, file=farm_filename)
 
-      i = 0
-      do while(i.eq.i)
+      print*, climate_file
+      print*, anim_file
 
-         i = i + 1
+      do ii = 1,nfips
 
 c     iterate over all counties in the input file
 c     for each one, load the farm probabilities
 
-         read(fstate_county, FMT = *,END = 200) 
-     2        state, county
+c     load cow population data
+        read(fcow_pop, FMT = *) state, county, county_cow_pop
 
         print*,'PROCESSING = State: ', state, ': County:',county
 
 c     load climate data
 
          read(fclimate,'(2I5,366F10.3)') tstate, tcounty,
-     2                                  (temps(j),j=1,366)
+     2                                  (temps(j),j=1,ndays)
          read(fclimate,'(2I5,366F10.3)') tstate, tcounty,
-     2                                   (wind(j),j=1,366)
+     2                                   (wind(j),j=1,ndays)
          read(fclimate,'(2I5,366F10.3)') tstate, tcounty,
-     2                                   (precip(j),j=1,366)
+     2                                   (precip(j),j=1,ndays)
 
 C         precip(:) = precip(:)/100.0   ! convert cm to meter 
 
         if(state.ne.tstate .or. county.ne.tcounty) then
           print*, 'ERROR: State:',tstate,' County:',tcounty,
      2            ' is missing from Climate Input file'
-          stop
-        end if
-
-c     load cow population data
-        read(fcow_pop, FMT = *) d1, d2, county_cow_pop
-
-        if(state.ne.d1 .or. county.ne.d2) then
-          print*, 'ERROR: State:',d1,' County:', d2,
-     2            ' is missing from Population Input file'
           stop
         end if
 
@@ -250,9 +248,11 @@ c     run farm model
 
            call model_driver_daily(temps, precip, wind, 
      2          infiltration_rate, farm_type, application_schedule, 
-     3          params, daily_emissions,anim_type)
+     3          params, daily_emissions,anim_type,ndays)
 
-           do k = 1,366
+           daily_emissions = daily_emissions * (2.2/2000.0)  ! convert kg/day to s-tons/day
+
+           do k = 1,ndays
               me(k,1) = me(k,1) + prob * daily_emissions(k,1)
               me(k,2) = me(k,2) + prob * daily_emissions(k,2)
               me(k,3) = me(k,3) + prob * daily_emissions(k,3)
@@ -270,70 +270,42 @@ c     run farm model
            stop
         end if
 
-        Mannual = 0
-        MHannual = 0
-        MSannual = 0
-        MAannual = 0
-        MGannual = 0
         annual_emission = 0
-        Hannual_emission = 0
-        Sannual_emission = 0
-        Aannual_emission = 0
-        Gannual_emission = 0
-        do k = 1,366
-           me(k,:) = me(k,:) / total_prob    ! true daily total (kg/day-head)
-           day_total = me(k,1) + me(k,2) + me(k,3) + me(k,4)
-           annual_emission = annual_emission + day_total
-           Hannual_emission = Hannual_emission + me(k,1)
-           Sannual_emission = Sannual_emission + me(k,2)
-           Aannual_emission = Aannual_emission + me(k,3)
-           Gannual_emission = Gannual_emission + me(k,4)
-           date = 2020000 + k
-           write(ffactor_day,'(I2.2,I3.3,2I16,6F20.3)') state,county,
-     2         date, county_cow_pop,county_cow_pop*day_total,day_total,
-     3         (me(k,l),l=1,4)
+        do k = 1,ndays
+           me(k,:) = me(k,:) / total_prob    ! true daily total (s-tons/day-head)
+           day_emission(k) = county_cow_pop * (me(k,1)+me(k,2)+me(k,3)+ me(k,4))
+           month_emission = month_emission + day_emission(k)
+           annual_emission = annual_emission + day_emission(k)
+           date = year*1000 + k
 
            do i = 1,12
-               if(k==month_jdate(i)) then
+             if(k==month_jdate(i)) then
+                sdate = month_jdate(i-1) + 1
+                if(i==1) sdate = 1
+                edate = k 
+                write(ffactor_day,10000) trim(country),state,county,trim(scc),i,
+     1                   month_emission,(day_emission(l),l=sdate,edate)
+                mon_total(i) = month_emission
+                month_emission = 0.0  ! reset it for next month total
 
-                   write(ffactor_mon,'(I2.2,I3.3,2I16,6F20.3)')
-     1               state,county,i,county_cow_pop,
-     2               county_cow_pop*(annual_emission-Mannual),
-     3               annual_emission-Mannual,
-     4               Hannual_emission-MHannual,
-     5               Sannual_emission-MSannual,
-     6               Aannual_emission-MAannual,
-     7               Gannual_emission-MGannual
-
-                     Mannual = annual_emission
-                     MHannual = Hannual_emission
-                     MSannual = Sannual_emission
-                     MAannual = Aannual_emission
-                     MGannual = Gannual_emission
-               end if
+             end if
            end do 
         enddo
 
-        county_emission = county_cow_pop * annual_emission
-c        Hannual_emission = county_cow_pop * Hannual_emission
-c        Sannual_emission = county_cow_pop * Sannual_emission
-c        Aannual_emission = county_cow_pop * Aannual_emission
-c        Gannual_emission = county_cow_pop * Gannual_emission
-
-        write(ffactor_out,'(I2.2,I3.3,I16,6F20.3)')
-     2   state, county, county_cow_pop,county_emission,annual_emission,
-     3    Hannual_emission, Sannual_emission, Aannual_emission,
-     4    Gannual_emission
+        write(ffactor_out,20000) trim(country),state,county,trim(scc),
+     1                    annual_emission,(mon_total(l),l=1,12)
 
       end do
  200  continue
 
-      close(fstate_county)
       close(ffarm_prob)
       close(ffactor_out)
       close(ffactor_day)
       close(fclimate)
       close(fcow_pop)
+
+10000 format(a3,',',I2.2,I3.3,',,,,,,',a,',NH3,,,,,',I2,32(',',E15.7))
+20000 format(a3,',',I2.2,I3.3,',,,,',a,',,NH3,',E15.7,',,,,,,,,,,,',12(',',E15.7))
       
       end
 

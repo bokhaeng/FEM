@@ -1,6 +1,6 @@
       subroutine model_driver_daily(temps_in, precip_in, wind_in, 
      2     infiltration_rate, farm_type, application_schedule, params,
-     3     daily_emissions, anim_type)
+     3     daily_emissions, anim_type, ndays)
 
 c******
 c Exectute the farm model for a complete year
@@ -24,6 +24,7 @@ c     output variables
                                    ! housing, storage, application,
                                    ! and grazing
       character*10 anim_type
+      integer ndays
 
 c     variables for submodels
       real pclean        ! percent volume removed at cleanout
@@ -185,7 +186,8 @@ c     farm type
       kload = volume_hour * params(17)
       urea_halflife = params(12)
 
-      data days /31,60,91,122,153,183,213,244,274,305,335,366/
+      data days /31,60,91,122,153,183,213,244,274,305,335,365/
+      days(12) = ndays
 
       u10 = 1.0
       Er = 10.0**(-5.0)
@@ -328,7 +330,7 @@ c     replace with infiltration rate
 
       month = 1
  
-      do i = 1, 366
+      do i = 1, ndays
 
 c     set month
         if(i>days(month)) month = month + 1
@@ -491,7 +493,7 @@ c     seasonal grazing
         endif
 
 C.......  NOTE: constant application emissions from cattle beef (3kg/yr)
-        if(anim_type=='beef') Ahourly_emissions = 3.0/366/24
+        if(anim_type=='beef') Ahourly_emissions = 3.0/(ndays*24)
 
         if ((grazing_hours.gt.0).or.(GMtan_remain.gt.0)) then
          
@@ -514,6 +516,13 @@ C.......  NOTE: constant application emissions from cattle beef (3kg/yr)
         s = 0
         g = 0
         do k = 1,24
+
+C          Zero-out negative hourly emissions
+C           if( Hhourly_emissions(k)<0.0 ) Hhourly_emissions(k) = 0.0
+C           if( Shourly_emissions(k)<0.0 ) Shourly_emissions(k) = 0.0
+C           if( Ahourly_emissions(k)<0.0 ) Ahourly_emissions(k) = 0.0
+C           if( Ghourly_emissions(k)<0.0 ) Ghourly_emissions(k) = 0.0
+
            h = h + Hhourly_emissions(k)
            s = s + Shourly_emissions(k)
            a = a + Ahourly_emissions(k)
@@ -538,39 +547,19 @@ c       compute annual totals
         Semission_total = Semission_total + s
         Aemission_total = Aemission_total + a
         Gemission_total = Gemission_total + g
-
       enddo
 
-      print *,'Ann Total',Hemission_total, Semission_total,
-     2                    Aemission_total, Gemission_total
-
-      housing_balance = housing_input - Hemission_total - exit_housing 
+       housing_balance = housing_input - Hemission_total - exit_housing 
      2     - HMtan0 + HMurea0 * Cut
 
-c      write (*, '(a,4F15.4,a,F15.4)') 'Housing    :',
-C     2 housing_input, Hemission_total, exit_housing, 
-C     3 HMtan0 + HMurea0 * Cut, '   Balance: ', housing_balance
-
-      storage_balance = exit_housing - Semission_total - exit_storage
+       storage_balance = exit_housing - Semission_total - exit_storage
      2     - SMtan0 + SMurea0 * Cut
 
-C      write (*, '(a,4F15.4,a,F15.4)') 'Storage    :',
-C     2 exit_housing, Semission_total, exit_storage, 
-C     3 SMtan0 + SMurea0 * Cut, '   Balance: ', storage_balance
-
-      application_balance = exit_storage - Aemission_total 
+       application_balance = exit_storage - Aemission_total 
      2     - AMtan0 - Ainfiltration_total
 
-C      write (*, '(a,4F15.4,a,F15.4)') 'Application:',
-C     2 exit_storage, Aemission_total, AMtan0, Ainfiltration_total, 
-C     3 '   Balance: ', application_balance
-
-      grazing_balance = grazing_input - Gemission_total 
+       grazing_balance = grazing_input - Gemission_total 
      2     - GMtan0 + GMurea0 * Cut - Ginfiltration_total
-
-C      write (*, '(a,4F15.4,a,F15.4)') 'Grazing    :',
-C     2 grazing_input, Gemission_total, GMtan0 + GMurea0 * Cut,
-C     3 Ginfiltration_total, '   Balance: ', grazing_balance
 
       end
 

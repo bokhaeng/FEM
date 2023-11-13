@@ -136,8 +136,6 @@ c        resistances.  Combine by fraction with crust
             hourly_vol(i) = Vt_remain
             hourly_urea(i) = Murea_remain
             hourly_tan(i) = Mtan_remain
-           write(6,'(a,8F15.3)') 'Storage:',avetemp(i),Vt_remain,cut,
-     2        Murea0,Murea_remain,Mtan0,Mtan_remain, hourly_emissions(i)
          endif
 
          Murea0 = Murea_remain

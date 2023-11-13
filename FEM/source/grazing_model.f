@@ -89,6 +89,7 @@ c     variables used for differentation
 
          dt = 1 ! hours in a timestep
          T = avetemp(i) + 273.15
+         if( avetemp(i)<0.0 ) avetemp(i) = 0.0
          Kh = 10**(-1.69+(1477.7/(T)))
          Ka = (10**-(0.09018+(2729.92/T)))
          Hstar = Ka/(((1+1/Kh)*Ka+Hconc)*Kh)
@@ -187,8 +188,6 @@ c           increase loading and remove crop interception
             hourly_vol(i) = vt_remain
             hourly_infiltration(i) = infiltration
             hourly_tan(i) = Mtan_remain
-            write(6,'(a,i6,4F15.3)') 'Grazing: ', i,Vt_remain,
-     2         Mtan_remain, infiltration, hourly_emissions(i)
          endif
 
          Vt0 = Vt
