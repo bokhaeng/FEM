@@ -272,7 +272,7 @@ c     run farm model
 
         annual_emission = 0
         do k = 1,ndays
-           me(k,:) = me(k,:) / total_prob    ! true daily total (s-tons/day-head)
+           me(k,:) = me(k,:) / total_prob    ! true daily total (kg/day-head)
            day_emission(k) = county_cow_pop * (me(k,1)+me(k,2)+me(k,3)+ me(k,4))
            month_emission = month_emission + day_emission(k)
            annual_emission = annual_emission + day_emission(k)

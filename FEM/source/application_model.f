@@ -94,7 +94,7 @@ c     and divide by hours applied
       do i = 1,24
 
          dt = 1 ! hours in a timestep
-         if( avetemp(i) < 0.0 ) avetemp(i) = 0.0
+         T = avetemp(i) + 273.15
          Kh = 10**(-1.69+(1477.7/(T)))
          Ka = (10**-(0.09018+(2729.92/T)))
          Hstar = Ka/(((1+1/Kh)*Ka+Hconc)*Kh)
@@ -160,6 +160,8 @@ c     time to apply
         
          endif
          
+         if( emission /= emission)  emission = 0.0  ! reset the infinity values
+
          if ((i.ge.6).and.(i.le.17)) then
 
             if(anim_type=='swine') then  ! Swine-specific equation
@@ -174,6 +176,10 @@ c     time to apply
          else
             hourly_emissions(i) = emission
          endif
+
+C        if(avetemp(i)>30.0) then
+C        write(*,'(i4,10E10.3)') i,avetemp(i),emission,ci_tan,Hstar,Ir,Er,A,C1,C2,C3
+C        end if
 
          infiltration_total = infiltration_total + infiltration
 
